@@ -1,3 +1,8 @@
+[![Download on GoBuilder](http://badge.luzifer.io/v1/badge?title=Download%20on&text=GoBuilder)](https://gobuilder.me/github.com/Luzifer/ediplug_ctrl)
+[![License: Apache v2.0](https://badge.luzifer.io/v1/badge?color=5d79b5&title=license&text=Apache+v2.0)](http://www.apache.org/licenses/LICENSE-2.0)
+[![GoDoc reference](http://badge.luzifer.io/v1/badge?color=5d79b5&title=godoc&text=reference)](https://godoc.org/github.com/Luzifer/ediplug_ctrl/ediplug)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Luzifer/ediplug_ctrl)](https://goreportcard.com/report/github.com/Luzifer/ediplug_ctrl)
+
 # Luzifer / ediplug\_ctrl
 
 `ediplug_ctrl` is a small webserver to wrap some amount of [EdiPlug SP2101W](http://www.edimax.com/edimax/merchandise/merchandise_detail/data/edimax/au/home_automation_smart_plug/sp-1101w/) smart plugs. It is capable of fetching metrics from those plugs and to set the state through a simple API instead of messing with XML on the controlling side.
