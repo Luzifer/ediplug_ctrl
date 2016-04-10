@@ -11,11 +11,13 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+// Command is an interface wich includes a XML generator and a XML parser
 type Command interface {
 	GetXML() ([]byte, error)
 	Parse(in io.Reader) error
 }
 
+// ExecuteCommand sends a command to a plug and parses the answer. The response can be found in the command object
 func ExecuteCommand(c Command, ip string, password string) error {
 	bodyRaw, err := c.GetXML()
 	if err != nil {
@@ -36,11 +38,13 @@ func ExecuteCommand(c Command, ip string, password string) error {
 	return c.Parse(resp.Body)
 }
 
+// SetStateCommand switches a plug on or off. DesiredState needs to be set to "ON" or "OFF" (in caps)
 type SetStateCommand struct {
 	DesiredState string
 	Success      bool
 }
 
+// GetXML assembles the request XML
 func (s *SetStateCommand) GetXML() ([]byte, error) {
 	c := struct {
 		XMLName xml.Name `xml:"SMARTPLUG"`
@@ -57,6 +61,7 @@ func (s *SetStateCommand) GetXML() ([]byte, error) {
 	return xml.Marshal(c)
 }
 
+// Parse parses data from the response XML
 func (s *SetStateCommand) Parse(in io.Reader) error {
 	c := struct {
 		XMLName xml.Name `xml:"SMARTPLUG"`
@@ -74,6 +79,7 @@ func (s *SetStateCommand) Parse(in io.Reader) error {
 	return nil
 }
 
+// GetStateCommand retrieves the current state from the plug (CurrentState will be "ON" or "OFF")
 type GetStateCommand struct {
 	CurrentState string
 
@@ -87,6 +93,7 @@ type GetStateCommand struct {
 	}
 }
 
+// GetXML assembles the request XML
 func (g *GetStateCommand) GetXML() ([]byte, error) {
 	g.comm.ID = "edimax"
 	g.comm.Command.ID = "get"
@@ -94,6 +101,7 @@ func (g *GetStateCommand) GetXML() ([]byte, error) {
 	return xml.Marshal(g.comm)
 }
 
+// Parse parses data from the response XML
 func (g *GetStateCommand) Parse(in io.Reader) error {
 	decoder := xml.NewDecoder(in)
 	decoder.CharsetReader = charset.NewReaderLabel
@@ -105,13 +113,14 @@ func (g *GetStateCommand) Parse(in io.Reader) error {
 	return nil
 }
 
+// GetEnergyCommand retrieves the energy stats from the plug
 type GetEnergyCommand struct {
 	LastToggleTime time.Time
-	NowCurrent     float64
-	NowPower       float64
-	DailyEnergy    float64
-	WeeklyEnergy   float64
-	MonthlyEnergy  float64
+	NowCurrent     float64 // Measured in Ampere
+	NowPower       float64 // Measured in Watts
+	DailyEnergy    float64 // Measured in kWh
+	WeeklyEnergy   float64 // Measured in kWh
+	MonthlyEnergy  float64 // Measured in kWh
 
 	comm struct {
 		XMLName xml.Name `xml:"SMARTPLUG"`
@@ -130,6 +139,7 @@ type GetEnergyCommand struct {
 	}
 }
 
+// GetXML assembles the request XML
 func (g *GetEnergyCommand) GetXML() ([]byte, error) {
 	g.comm.ID = "edimax"
 	g.comm.Command.ID = "get"
@@ -137,6 +147,7 @@ func (g *GetEnergyCommand) GetXML() ([]byte, error) {
 	return xml.Marshal(g.comm)
 }
 
+// Parse parses data from the response XML
 func (g *GetEnergyCommand) Parse(in io.Reader) error {
 	decoder := xml.NewDecoder(in)
 	decoder.CharsetReader = charset.NewReaderLabel
@@ -158,6 +169,7 @@ func (g *GetEnergyCommand) Parse(in io.Reader) error {
 	return nil
 }
 
+// GetSystemInfoCommand retrieves general information about the plug
 type GetSystemInfoCommand struct {
 	Model           string
 	FirmwareVersion string
@@ -181,6 +193,7 @@ type GetSystemInfoCommand struct {
 	}
 }
 
+// GetXML assembles the request XML
 func (g *GetSystemInfoCommand) GetXML() ([]byte, error) {
 	g.comm.ID = "edimax"
 	g.comm.Command.ID = "get"
@@ -188,6 +201,7 @@ func (g *GetSystemInfoCommand) GetXML() ([]byte, error) {
 	return xml.Marshal(g.comm)
 }
 
+// Parse parses data from the response XML
 func (g *GetSystemInfoCommand) Parse(in io.Reader) error {
 	decoder := xml.NewDecoder(in)
 	decoder.CharsetReader = charset.NewReaderLabel
