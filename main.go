@@ -195,7 +195,7 @@ func handlePlugSwitch(res http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := backoff.Retry(func() error {
-		ediplug.ExecuteCommand(stateRequest, ip, cfg.PlugPassword)
+		return ediplug.ExecuteCommand(stateRequest, ip, cfg.PlugPassword)
 	}, defaultBackoff); err != nil {
 		http.Error(res, fmt.Sprintf("An error occurred while setting state: %s", err), http.StatusInternalServerError)
 		return
