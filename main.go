@@ -27,8 +27,9 @@ var (
 
 	version = "dev"
 
-	metrics = map[string]plugMetrics{}
-	plugs   = map[string]string{}
+	metrics    = map[string]plugMetrics{}
+	plugs      = map[string]string{}
+	plugStatus = map[string]string{}
 
 	defaultBackoff = backoff.NewExponentialBackOff()
 )
@@ -132,6 +133,7 @@ func main() {
 	r := mux.NewRouter()
 	r.Handle("/metrics", prometheus.Handler())
 	r.HandleFunc("/switch/{system}/{state}", handlePlugSwitch)
+	r.HandleFunc("/status/{system}", handlePlugStatus)
 	http.ListenAndServe(cfg.Listen, r)
 }
 
@@ -161,6 +163,8 @@ func fetchMetrics() {
 				return
 			}
 
+			plugStatus[plugIP] = ca.CurrentState
+
 			switch ca.CurrentState {
 			case "ON":
 				metrics[plugIP].Activated.Set(1)
@@ -171,6 +175,19 @@ func fetchMetrics() {
 			}
 		}(cfg.PlugIPs[i])
 	}
+}
+
+func handlePlugStatus(res http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	state, ok := plugStatus[plugs[vars["system"]]]
+
+	if !ok {
+		http.Error(res, "System not found", http.StatusNotFound)
+		return
+	}
+
+	fmt.Fprintf(res, state)
 }
 
 func handlePlugSwitch(res http.ResponseWriter, r *http.Request) {
