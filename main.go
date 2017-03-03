@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/Luzifer/ediplug_ctrl/ediplug"
@@ -27,9 +28,10 @@ var (
 
 	version = "dev"
 
-	metrics    = map[string]plugMetrics{}
-	plugs      = map[string]string{}
-	plugStatus = map[string]string{}
+	metrics        = map[string]plugMetrics{}
+	plugs          = map[string]string{}
+	plugStatus     = map[string]string{}
+	plugStatusLock = sync.RWMutex{}
 
 	defaultBackoff = backoff.NewExponentialBackOff()
 )
@@ -163,7 +165,9 @@ func fetchMetrics() {
 				return
 			}
 
+			plugStatusLock.Lock()
 			plugStatus[plugIP] = ca.CurrentState
+			plugStatusLock.Unlock()
 
 			switch ca.CurrentState {
 			case "ON":
@@ -180,7 +184,9 @@ func fetchMetrics() {
 func handlePlugStatus(res http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
+	plugStatusLock.RLock()
 	state, ok := plugStatus[plugs[vars["system"]]]
+	plugStatusLock.RUnlock()
 
 	if !ok {
 		http.Error(res, "System not found", http.StatusNotFound)
