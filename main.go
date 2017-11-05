@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -15,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/robfig/cron"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -67,7 +67,7 @@ func main() {
 		if err := backoff.Retry(func() error {
 			return ediplug.ExecuteCommand(c, plugIP, cfg.PlugPassword)
 		}, defaultBackoff); err != nil {
-			log.Printf("Unable to fetch system information for plug '%s', not fetching data.", plugIP)
+			log.WithFields(log.Fields{"plug": plugIP}).WithError(err).Error("Unable to fetch system information")
 			continue
 		}
 
@@ -147,7 +147,7 @@ func fetchMetrics() {
 			if err := backoff.Retry(func() error {
 				return ediplug.ExecuteCommand(ce, plugIP, cfg.PlugPassword)
 			}, defaultBackoff); err != nil {
-				log.Printf("Unable to fetch metrics for plug '%s'", plugIP)
+				log.WithFields(log.Fields{"plug": plugIP}).WithError(err).Error("Unable to fetch metrics")
 				return
 			}
 
@@ -161,7 +161,7 @@ func fetchMetrics() {
 			if err := backoff.Retry(func() error {
 				return ediplug.ExecuteCommand(ca, plugIP, cfg.PlugPassword)
 			}, defaultBackoff); err != nil {
-				log.Printf("Unable to fetch acivation status for plug '%s'", plugIP)
+				log.WithFields(log.Fields{"plug": plugIP}).WithError(err).Error("Unable to fetch acivation status")
 				return
 			}
 
@@ -175,7 +175,7 @@ func fetchMetrics() {
 			case "OFF":
 				metrics[plugIP].Activated.Set(0)
 			default:
-				log.Printf("Got unexpected activation status for plug '%s': %s", plugIP, ca.CurrentState)
+				log.WithFields(log.Fields{"plug": plugIP, "status": ca.CurrentState}).Warn("Got unexpected activation status")
 			}
 		}(cfg.PlugIPs[i])
 	}
