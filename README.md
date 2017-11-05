@@ -1,7 +1,7 @@
-[![Download on GoBuilder](http://badge.luzifer.io/v1/badge?title=Download%20on&text=GoBuilder)](https://gobuilder.me/github.com/Luzifer/ediplug_ctrl)
-[![License: Apache v2.0](https://badge.luzifer.io/v1/badge?color=5d79b5&title=license&text=Apache+v2.0)](http://www.apache.org/licenses/LICENSE-2.0)
-[![GoDoc reference](http://badge.luzifer.io/v1/badge?color=5d79b5&title=godoc&text=reference)](https://godoc.org/github.com/Luzifer/ediplug_ctrl/ediplug)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Luzifer/ediplug_ctrl)](https://goreportcard.com/report/github.com/Luzifer/ediplug_ctrl)
+![](https://badges.fyi/github/license/Luzifer/ediplug_ctrl)
+![](https://badges.fyi/github/downloads/Luzifer/ediplug_ctrl)
+![](https://badges.fyi/github/latest-release/Luzifer/ediplug_ctrl)
 
 # Luzifer / ediplug\_ctrl
 
@@ -21,7 +21,7 @@ Usage of ./ediplug_ctrl:
       --version[=false]: Show version and exit
 ```
 
-You can run the `ediplug_ctrl` using docker or as a [single binary](https://gobuilder.me/github.com/Luzifer/ediplug_ctrl):
+You can run the `ediplug_ctrl` using docker or as a [single binary](https://github.com/Luzifer/ediplug_ctrl/releases):
 
 ```bash
 # docker run luzifer/ediplug_ctrl --ip=10.0.0.111
