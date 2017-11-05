@@ -1,3 +1,9 @@
+# 0.3.2 / 2017-11-05
+
+  * Add automated Github publishing
+  * Update Dockerfile
+  * Update README
+
 # 0.3.1 / 2017-11-05
 
   * Update dependencies
