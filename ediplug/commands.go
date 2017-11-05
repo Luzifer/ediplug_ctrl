@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	httpHelper "github.com/Luzifer/go_helpers/http"
 	"golang.org/x/net/html/charset"
 )
 
@@ -25,11 +26,28 @@ func ExecuteCommand(c Command, ip string, password string) error {
 	}
 
 	body := bytes.NewBuffer(append([]byte(xml.Header), bodyRaw...))
-	req, _ := http.NewRequest("POST", fmt.Sprintf("http://%s:10000/smartplug.cgi", ip), body)
+	uri := fmt.Sprintf("http://%s:10000/smartplug.cgi", ip)
+	req, _ := http.NewRequest("POST", uri, body)
 	req.Header.Set("Content-Type", "application/xml")
+
+	// Basic Auth is used in firmware <2.08
 	req.SetBasicAuth("admin", password)
 
 	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized && resp.Header.Get("Www-Authenticate") != "" {
+		resp.Body.Close()
+		// Most likely we do have a >=2.08 firmeware here which switched to digest auth
+		body := bytes.NewBuffer(append([]byte(xml.Header), bodyRaw...))
+		req, _ = http.NewRequest("POST", uri, body)
+		req.Header.Set("Content-Type", "application/xml")
+		req.Header.Set("Authorization", httpHelper.GetDigestAuth(resp, "POST", req.URL.Path, "admin", password))
+		resp, err = http.DefaultClient.Do(req)
+	}
+
 	if err != nil {
 		return err
 	}
