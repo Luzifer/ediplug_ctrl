@@ -2,26 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package language implements BCP 47 language tags and related functionality.
-//
-// The Tag type, which is used to represent language tags, is agnostic to the
-// meaning of its subtags. Tags are not fully canonicalized to preserve
-// information that may be valuable in certain contexts. As a consequence, two
-// different tags may represent identical languages in certain contexts.
-//
-// To determine equivalence between tags, a user should typically use a Matcher
-// that is aware of the intricacies of equivalence within the given context.
-// The default Matcher implementation provided in this package takes into
-// account things such as deprecated subtags, legacy tags, and mutual
-// intelligibility between scripts and languages.
-//
-// See http://tools.ietf.org/html/bcp47 for more details.
-//
-// NOTE: This package is still under development. Parts of it are not yet
-// implemented, and the API is subject to change.
-package language // import "golang.org/x/text/language"
+//go:generate go run gen.go gen_common.go -output tables.go
+//go:generate go run gen_index.go
 
-//go:generate go run maketables.go gen_common.go -output tables.go
+package language
+
+// TODO: Remove above NOTE after:
+// - verifying that tables are dropped correctly (most notably matcher tables).
 
 import (
 	"errors"
@@ -47,8 +34,15 @@ const (
 // specific language or locale. All language tag values are guaranteed to be
 // well-formed.
 type Tag struct {
-	lang     langID
-	region   regionID
+	lang   langID
+	region regionID
+	// TODO: we will soon run out of positions for script. Idea: instead of
+	// storing lang, region, and script codes, store only the compact index and
+	// have a lookup table from this code to its expansion. This greatly speeds
+	// up table lookup, speed up common variant cases.
+	// This will also immediately free up 3 extra bytes. Also, the pVariant
+	// field can now be moved to the lookup table, as the compact index uniquely
+	// determines the offset of a possible variant.
 	script   scriptID
 	pVariant byte   // offset in str, includes preceding '-'
 	pExt     uint16 // offset of first extension, includes preceding '-'
@@ -156,44 +150,49 @@ func (t Tag) canonicalize(c CanonType) (Tag, bool) {
 		}
 	}
 	if c&canonLang != 0 {
-		if l, aliasType := normLang(t.lang); l != t.lang {
-			switch aliasType {
-			case langLegacy:
-				if c&Legacy != 0 {
-					if t.lang == _sh && t.script == 0 {
-						t.script = _Latn
-					}
-					t.lang = l
-					changed = true
-				}
-			case langMacro:
-				if c&Macro != 0 {
-					// We deviate here from CLDR. The mapping "nb" -> "no"
-					// qualifies as a typical Macro language mapping.  However,
-					// for legacy reasons, CLDR maps "no", the macro language
-					// code for Norwegian, to the dominant variant "nb". This
-					// change is currently under consideration for CLDR as well.
-					// See http://unicode.org/cldr/trac/ticket/2698 and also
-					// http://unicode.org/cldr/trac/ticket/1790 for some of the
-					// practical implications. TODO: this check could be removed
-					// if CLDR adopts this change.
-					if c&CLDR == 0 || t.lang != _nb {
-						changed = true
+		for {
+			if l, aliasType := normLang(t.lang); l != t.lang {
+				switch aliasType {
+				case langLegacy:
+					if c&Legacy != 0 {
+						if t.lang == _sh && t.script == 0 {
+							t.script = _Latn
+						}
 						t.lang = l
+						changed = true
+					}
+				case langMacro:
+					if c&Macro != 0 {
+						// We deviate here from CLDR. The mapping "nb" -> "no"
+						// qualifies as a typical Macro language mapping.  However,
+						// for legacy reasons, CLDR maps "no", the macro language
+						// code for Norwegian, to the dominant variant "nb". This
+						// change is currently under consideration for CLDR as well.
+						// See http://unicode.org/cldr/trac/ticket/2698 and also
+						// http://unicode.org/cldr/trac/ticket/1790 for some of the
+						// practical implications. TODO: this check could be removed
+						// if CLDR adopts this change.
+						if c&CLDR == 0 || t.lang != _nb {
+							changed = true
+							t.lang = l
+						}
+					}
+				case langDeprecated:
+					if c&DeprecatedBase != 0 {
+						if t.lang == _mo && t.region == 0 {
+							t.region = _MD
+						}
+						t.lang = l
+						changed = true
+						// Other canonicalization types may still apply.
+						continue
 					}
 				}
-			case langDeprecated:
-				if c&DeprecatedBase != 0 {
-					if t.lang == _mo && t.region == 0 {
-						t.region = _MD
-					}
-					t.lang = l
-					changed = true
-				}
+			} else if c&Legacy != 0 && t.lang == _no && c&CLDR != 0 {
+				t.lang = _nb
+				changed = true
 			}
-		} else if c&Legacy != 0 && t.lang == _no && c&CLDR != 0 {
-			t.lang = _nb
-			changed = true
+			break
 		}
 	}
 	if c&DeprecatedScript != 0 {
@@ -260,11 +259,11 @@ func (t *Tag) remakeString() {
 	var buf [max99thPercentileSize]byte // avoid extra memory allocation in most cases.
 	b := buf[:t.genCoreBytes(buf[:])]
 	if extra != "" {
-		diff := uint8(len(b)) - t.pVariant
+		diff := len(b) - int(t.pVariant)
 		b = append(b, '-')
 		b = append(b, extra...)
-		t.pVariant += diff
-		t.pExt += uint16(diff)
+		t.pVariant = uint8(int(t.pVariant) + diff)
+		t.pExt = uint16(int(t.pExt) + diff)
 	} else {
 		t.pVariant = uint8(len(b))
 		t.pExt = uint16(len(b))
@@ -506,7 +505,7 @@ func (t Tag) Extension(x byte) (ext Extension, ok bool) {
 			return Extension{ext}, true
 		}
 	}
-	return Extension{string(x)}, false
+	return Extension{}, false
 }
 
 // Extensions returns all extensions of t.
@@ -683,6 +682,53 @@ func (t Tag) findTypeForKey(key string) (start, end int, hasExt bool) {
 	}
 }
 
+// CompactIndex returns an index, where 0 <= index < NumCompactTags, for tags
+// for which data exists in the text repository. The index will change over time
+// and should not be stored in persistent storage. Extensions, except for the
+// 'va' type of the 'u' extension, are ignored. It will return 0, false if no
+// compact tag exists, where 0 is the index for the root language (Und).
+func CompactIndex(t Tag) (index int, ok bool) {
+	// TODO: perhaps give more frequent tags a lower index.
+	// TODO: we could make the indexes stable. This will excluded some
+	//       possibilities for optimization, so don't do this quite yet.
+	b, s, r := t.Raw()
+	if len(t.str) > 0 {
+		if strings.HasPrefix(t.str, "x-") {
+			// We have no entries for user-defined tags.
+			return 0, false
+		}
+		if uint16(t.pVariant) != t.pExt {
+			// There are no tags with variants and an u-va type.
+			if t.TypeForKey("va") != "" {
+				return 0, false
+			}
+			t, _ = Raw.Compose(b, s, r, t.Variants())
+		} else if _, ok := t.Extension('u'); ok {
+			// Strip all but the 'va' entry.
+			variant := t.TypeForKey("va")
+			t, _ = Raw.Compose(b, s, r)
+			t, _ = t.SetTypeForKey("va", variant)
+		}
+		if len(t.str) > 0 {
+			// We have some variants.
+			for i, s := range specialTags {
+				if s == t {
+					return i + 1, true
+				}
+			}
+			return 0, false
+		}
+	}
+	// No variants specified: just compare core components.
+	// The key has the form lllssrrr, where l, s, and r are nibbles for
+	// respectively the langID, scriptID, and regionID.
+	key := uint32(b.langID) << (8 + 12)
+	key |= uint32(s.scriptID) << 12
+	key |= uint32(r.regionID)
+	x, ok := coreTags[key]
+	return int(x), ok
+}
+
 // Base is an ISO 639 language code, used for encoding the base language
 // of a language tag.
 type Base struct {
@@ -838,21 +884,4 @@ func ParseVariant(s string) (Variant, error) {
 // String returns the string representation of the variant.
 func (v Variant) String() string {
 	return v.variant
-}
-
-// Currency is an ISO 4217 currency designator.
-type Currency struct {
-	currencyID
-}
-
-// ParseCurrency parses a 3-letter ISO 4217 code.
-// It returns a ValueError if s is a well-formed but unknown currency identifier
-// or another error if another error occurred.
-func ParseCurrency(s string) (Currency, error) {
-	if len(s) != 3 {
-		return Currency{}, errSyntax
-	}
-	var buf [3]byte
-	c, err := getCurrencyID(currency, buf[:copy(buf[:], s)])
-	return Currency{c}, err
 }

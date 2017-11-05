@@ -2,11 +2,6 @@
 
 
 [[projects]]
-  name = "bitbucket.org/ww/goautoneg"
-  packages = ["."]
-  revision = "'75cd24fc2f2c2a2088577d12123ddee5f54e0675'"
-
-[[projects]]
   name = "github.com/Luzifer/go_helpers"
   packages = ["accessLogger","http","str"]
   revision = "8ea0c30d03f7ce01e5dc43bd8dbc6201a95fd66a"
@@ -15,63 +10,74 @@
 [[projects]]
   name = "github.com/Luzifer/rconfig"
   packages = ["."]
-  revision = "26776536e61487fdffbd3ce87f827177a5903f98"
+  revision = "7aef1d393c1e2d0758901853b59981c7adc67c7e"
+  version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
-  revision = "b965b613227fddccbfffe13eae360ed3fa822f8d"
+  revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
 
 [[projects]]
   name = "github.com/cenkalti/backoff"
   packages = ["."]
-  revision = "9831e1e25c874e0a0601b6dc43641071414eec7a"
+  revision = "61153c768f31ee5f130071d08fc82b85208528de"
+  version = "v1.1.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "8df8a93c670173cd1d8737a507a253b94f2d0b5a"
+  revision = "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
 
 [[projects]]
   name = "github.com/gorilla/context"
   packages = ["."]
-  revision = "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+  version = "v1.1"
 
 [[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "49c024275504f0341e5a9971eb7ba7fa3dc7af40"
+  revision = "24fca303ac6da784b9e8269f724ddeb0b2eea5e7"
+  version = "v1.5.0"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
-  revision = "fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a"
+  revision = "3247c84500bff8d9fb6d579d800f20b3e091582c"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
   packages = ["prometheus"]
-  revision = "3b78d7a77f51ccbc364d4bc170920153022cfd08"
+  revision = "c5b7fccd204277076155f10851dad72b76a49317"
+  version = "v0.8.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/prometheus/client_model"
   packages = ["go"]
-  revision = "fa8ad6fec33561be4280a8f0514318c79d7f6cb6"
+  revision = "6f3806018612930941127f2a7c6c453ba2c527d2"
 
 [[projects]]
+  branch = "master"
   name = "github.com/prometheus/common"
-  packages = ["expfmt","model"]
-  revision = "ffd5d0f2976124c788687ec2ac194f5479e1f9c2"
+  packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
+  revision = "e3fb1a1acd7605367a2b378bc2e2f893c05174b7"
 
 [[projects]]
+  branch = "master"
   name = "github.com/prometheus/procfs"
-  packages = ["."]
-  revision = "3b231703e7dd0ca93302b5242ad6aeb4b5c603a2"
+  packages = [".","xfs"]
+  revision = "a6e9df898b1336106c743392c48ee0b71f5c4efa"
 
 [[projects]]
-  branch = "v1"
   name = "github.com/robfig/cron"
   packages = ["."]
-  revision = "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
+  revision = "b024fc5ea0e34bc3f83d9941c8d60b0622bfaca4"
+  version = "v1"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -82,7 +88,8 @@
 [[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "b084184666e02084b8ccb9b704bf0d79c466eb1d"
+  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -91,9 +98,10 @@
   revision = "bd6f299fb381e4c3393d1c4b1f0b94f5e77650c8"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/net"
-  packages = ["html","html/atom","html/charset"]
-  revision = "ff8eb9a34a5cbb9941ffc6f84a19a8014c2646ad"
+  packages = ["context","html","html/atom","html/charset"]
+  revision = "01c190206fbdffa42f334f4b2bf2220f50e64920"
 
 [[projects]]
   branch = "master"
@@ -102,14 +110,22 @@
   revision = "8eb05f94d449fdf134ec24630ce69ada5b469c1c"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/text"
-  packages = ["encoding","encoding/charmap","encoding/japanese","encoding/korean","encoding/simplifiedchinese","encoding/traditionalchinese","encoding/unicode","transform"]
-  revision = "8ec34a0272a20b3a6b12ecab475dd99e16610e4c"
+  packages = ["encoding","encoding/charmap","encoding/htmlindex","encoding/internal","encoding/internal/identifier","encoding/japanese","encoding/korean","encoding/simplifiedchinese","encoding/traditionalchinese","encoding/unicode","internal/gen","internal/tag","internal/utf8internal","language","runes","transform","unicode/cldr"]
+  revision = "88f656faf3f37f690df1a32515b479415e1a6769"
 
 [[projects]]
+  branch = "v2"
+  name = "gopkg.in/validator.v2"
+  packages = ["."]
+  revision = "460c83432a98c35224a6fe352acf8b23e067ad06"
+
+[[projects]]
+  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "53feefa2559fb8dfa8d81baad31be332c97d6c77"
+  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
 
 [solve-meta]
   analyzer-name = "dep"
