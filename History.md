@@ -1,3 +1,8 @@
+# 0.3.0 / 2017-11-05
+
+  * Implement Digest auth for firmware >=2.08
+  * Improve logging
+
 # 0.2.1 / 2017-03-03
 
   * Fix: Add locking to plug status store
