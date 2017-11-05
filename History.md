@@ -1,3 +1,8 @@
+# 0.3.1 / 2017-11-05
+
+  * Update dependencies
+  * Switch to dep for vendoring
+
 # 0.3.0 / 2017-11-05
 
   * Implement Digest auth for firmware >=2.08
